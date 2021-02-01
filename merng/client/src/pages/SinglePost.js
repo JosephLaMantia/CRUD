@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import gql from 'graphql-tag';
 import { useMutation, useQuery } from '@apollo/react-hooks';
 import { Button, Card, Form, Grid, Image, Icon, Label, CardContent } from 'semantic-ui-react';
@@ -11,6 +11,8 @@ import DeleteButton from '../components/DeleteButton';
 function SinglePost(props){
     const postId = props.match.params.postId;
     const { user } = useContext(AuthContext);
+
+    const commentInputRef = useRef(null);
     
     const [comment, setComment] = useState('')
 
@@ -24,7 +26,8 @@ function SinglePost(props){
 
     const [submitComment] = useMutation(SUBMIT_COMMENT_MUTATION, {
         update(){
-            setComment('')
+            setComment('');
+            commentInputRef.current.blur();
         },
         variables: {
             postId,
@@ -90,9 +93,10 @@ function SinglePost(props){
                                         name='comment'
                                         value={comment}
                                         onChange={event => setComment(event.target.value)}
+                                        ref={commentInputRef}
                                     />
                                     <button type='submit'
-                                        classname='ui button teal'
+                                        className='ui button teal'
                                         disabled={comment.trim() === ''}
                                         onClick={submitComment}
                                         >
@@ -125,7 +129,7 @@ function SinglePost(props){
 }
 
 const SUBMIT_COMMENT_MUTATION = gql`
-    mutation($postId: ID!, $body: String!){
+    mutation($postId: String!, $body: String!){
         createComment(postId: $postId, body: $body){
             id
             comments{
